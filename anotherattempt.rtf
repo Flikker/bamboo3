@@ -1,0 +1,238 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang2057{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\sa200\sl276\slmult1\lang9\f0\fs22 function downloadFile(serverurl, localurl) \{\par
+\par
+\par
+var fileTransfer = new FileTransfer();\par
+\par
+    var uri = encodeURI(serverurl);\par
+    var fileURL = 'cdvfile://localhost/persistent/' + localurl;\par
+    \par
+    var statusDom;\par
+\par
+statusDom = document.querySelector('#status');\par
+\par
+fileTransfer.onprogress = function(progressEvent) \{\par
+            if (progressEvent.lengthComputable) \{\par
+        var perc = Math.floor(progressEvent.loaded / progressEvent.total * 100);\par
+    statusDom.innerHTML = perc + "% loaded...";\par
+    document.getElementById("ft-prog").value = perc;\par
+            console.log(perc);\par
+            \} else \{\par
+                    if(statusDom.innerHTML == "") \{\par
+                    statusDom.innerHTML = "Loading";\par
+            \} else \{\par
+                    statusDom.innerHTML += ".";\par
+            \}\par
+        \}\par
+    \};\par
+   \par
+\par
+    fileTransfer.download(\par
+        uri,\par
+        fileURL,\par
+        \par
+        function(entry) \{\par
+            console.log("download complete: " + entry.toURL());\par
+            \par
+            folderName = "content";\par
+            fileName = "cath";\par
+             var that = this;\par
+            \par
+            zip.unzip("cdvfile://localhost/persistent/" + folderName + "/" + fileName,\par
+                      "cdvfile://localhost/persistent/" + folderName,\par
+                    function(code) \{\par
+                        console.log("result: " + code);\par
+                        \par
+                        that.getFilesystem(\par
+                                function(fileSystem) \{\par
+                                     \par
+                                    console.log("gotFS");\par
+                                    that.getFolder(fileSystem, folderName + "/ftpack", function (folder) \{\par
+                                        document.getElementById("imgPlace").src = folder.nativeURL + "/img.jpg";\par
+                                        folder.getFile("text.html", \{create: false\}, function (fileEntry) \{\par
+                                            fileEntry.file(function(file) \{\par
+                                                var reader = new FileReader();\par
+                                                reader.onloadend = function (evt) \{\par
+                                                    console.log("Read as text");\par
+                                                    console.log(evt.target.result);\par
+                                                    document.getElementById("txtPlace").innerHTML = evt.target.result;\par
+                                                    typeof that.success === ' function && that.success();'\par
+                                                \};\par
+                                                reader.readAsText(file);\par
+                                            \}, function(error) \{\par
+                                                console.log("Failed to get file");\par
+                                                typeof that.fail === 'function' && that.fail(error);\par
+                                            \});\par
+                                        \}, function (error) \{\par
+                                            console.log("failed to get file: " + error.code);\par
+                                            typeof that.fail === 'function' && that.fail(error);\par
+                                        \});\par
+                                    \}, function (error) \{\par
+                                        console.log("failed to get folder: " + error.code);\par
+                                        typeof that.fail === 'function' && that.fail(error);\par
+                                    \});\par
+                                \}, function(error) \{\par
+                                    console.log("failed to get filesystem: " + error.code);\par
+                                    typeof that.fail === 'function' && that.fail(error);\par
+                                \});\par
+                    \}\par
+            );\par
+            \par
+            \par
+            \par
+            \par
+            persistData(entry.toURL()  + '/unzip/pano1.html', entry.toURL()  + '/unzip/Durhamcathedral.jpg', 'Dunstanburgh Castle');\par
+        \},\par
+        function(error) \{\par
+            console.log("download error source " + error.source);\par
+            console.log("download error target " + error.target);\par
+            console.log("upload error code" + error.code);\par
+        \},\par
+        false,\par
+        \{\par
+            headers: \{\par
+                "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="\par
+            \}\par
+        \}\par
+    );\par
+\par
+\};\par
+\par
+\par
+\par
+ // !! Assumes variable fileURL contains a valid URL to a path on the device,\par
+    //    for example, cdvfile://localhost/persistent/path/to/downloads/\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+\par
+function downloadFile(serverurl, localurl) \{\par
+\par
+\par
+var fileTransfer = new FileTransfer();\par
+\par
+    var uri = encodeURI(serverurl);\par
+    var fileURL = 'cdvfile://localhost/persistent/' + localurl;\par
+    \par
+    var statusDom;\par
+\par
+statusDom = document.querySelector('#status');\par
+\par
+fileTransfer.onprogress = function(progressEvent) \{\par
+            if (progressEvent.lengthComputable) \{\par
+        var perc = Math.floor(progressEvent.loaded / progressEvent.total * 100);\par
+    statusDom.innerHTML = perc + "% loaded...";\par
+    document.getElementById("ft-prog").value = perc;\par
+            console.log(perc);\par
+            \} else \{\par
+                    if(statusDom.innerHTML == "") \{\par
+                    statusDom.innerHTML = "Loading";\par
+            \} else \{\par
+                    statusDom.innerHTML += ".";\par
+            \}\par
+        \}\par
+    \};\par
+     \par
+     \par
+    \par
+     \par
+\par
+    \par
+     var progressCallback = function() \{\par
+     \};\par
+     \par
+     \par
+     function success(entries) \{\par
+    var i;\par
+    for (i=0; i<entries.length; i++) \{\par
+        console.log(entries[i].name);\par
+    \}\par
+\}\par
+\par
+function fail(error) \{\par
+    alert("Failed to list directory contents: " + error.code);\par
+\}\par
+\par
+// Get a directory reader\par
+var directoryReader = unzipped.createReader();\par
+\par
+// Get a list of all the entries in the directory\par
+directoryReader.readEntries(success,fail);\par
+     \par
+     \par
+     \par
+     \par
+    fileTransfer.download(\par
+        uri,\par
+        fileURL,\par
+        \par
+        function(entry) \{\par
+            console.log("download complete: " + entry.toURL());\par
+            \par
+     \par
+\par
+            \par
+            zip.unzip(entry.toURL(), entry.toURL() + '/unzipped', function()\{\par
+                                           alert("completed unzip"); directoryReader.readEntries(success,fail);\par
+                                           \}, progressCallback());\par
+            \par
+            \par
+            \par
+            \par
+            persistData(entry.toURL()  + '/unzip/pano1.html', entry.toURL()  + '/unzip/Durhamcathedral.jpg', 'Dunstanburgh Castle');\par
+        \},\par
+        function(error) \{\par
+            console.log("download error source " + error.source);\par
+            console.log("download error target " + error.target);\par
+            console.log("upload error code" + error.code);\par
+        \},\par
+        false,\par
+        \{\par
+            headers: \{\par
+                "Authorization": "Basic dGVzdHVzZXJuYW1lOnRlc3RwYXNzd29yZA=="\par
+            \}\par
+        \}\par
+    );\par
+\par
+\};\par
+\par
+\par
+\par
+ // !! Assumes variable fileURL contains a valid URL to a path on the device,\par
+    //    for example, cdvfile://localhost/persistent/path/to/downloads/\par
+    \par
+    \par
+    \par
+    \par
+}
+ 

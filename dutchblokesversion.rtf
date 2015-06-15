@@ -1,0 +1,467 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang2057{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Msftedit 5.41.21.2510;}\viewkind4\uc1\pard\sa200\sl276\slmult1\lang9\f0\fs22 document.addEventListener("deviceready", onDeviceReady, false);\par
+\par
+    function registerHandlers() \{\par
+        document.getElementById("btnLoad").onclick = function() \{\par
+            var that = this,\par
+                    App = new DownloadApp(),\par
+                    fileName = "poo.zip",\par
+                    uri = encodeURI("http://revolutioninteractivevideo.com/wp-content/uploads/panos/augmentedrealityheritage/www/files/Durhamcath.zip"),\par
+                    folderName = "content";\par
+            console.log("load button clicked");\par
+            document.getElementById("output2").innerHTML += "<br/>Loading: " + uri;\par
+            App.load(uri, folderName, fileName,\par
+                    /*progress*/function(percentage)\par
+                     \par
+            if (progressEvent.lengthComputable) \{\par
+        var perc = Math.floor(progressEvent.loaded / progressEvent.total * 100);\par
+    statusDom.innerHTML = perc + "% loaded...";\par
+    document.getElementById("ft-prog").value = perc;\par
+            console.log(perc);\par
+            \} else \{\par
+                    if(statusDom.innerHTML == "") \{\par
+                    statusDom.innerHTML = "Loading";\par
+            \} else \{\par
+                    statusDom.innerHTML += ".";\par
+            \}\par
+        \}\par
+    \par
+            \par
+\par
+                     \par
+                    \par
+                    /*success*/function(entry) \{ document.getElementById("output2").innerHTML += "<br/>Zip saved to: " + entry.toURL(); \},\par
+                    /*fail*/function() \{ document.getElementById("output2").innerHTML += "<br/>Failed load zip: " + that.uri; \}\par
+            );\par
+        \};\par
+        document.getElementById("btnUnzip").onclick = function() \{\par
+            var that = this,\par
+                    App = new DownloadApp(),\par
+                    fileName = "poo.zip",\par
+                    folderName = "content";\par
+            console.log("zip button clicked");\par
+            App.unzip(folderName, fileName,\par
+                    /*success*/function() \{ alert("Unzipped and assigned"); \},\par
+                    /*fail*/function(error) \{ alert("Unzip failed: " + error.code); \}\par
+            );\par
+        \};\par
+    \}\par
+\par
+    function onDeviceReady() \{\par
+        // navigator.splashscreen.hide();\par
+        document.getElementById("output2").innerHTML += "<br/>deviceready event received";\par
+        registerHandlers();\par
+    \}\par
+\par
+    var DownloadApp = function() \{\par
+    \}\par
+\par
+    DownloadApp.prototype = \{\par
+        load: function(uri, folderName, fileName, progress, success, fail) \{\par
+            var that = this;\par
+            that.progress = progress;\par
+            that.success = success;\par
+            that.fail = fail;\par
+            filePath = "";\par
+\par
+            that.getFilesystem(\par
+                    function(fileSystem) \{\par
+                        console.log("GotFS");\par
+                        that.getFolder(fileSystem, folderName, function(folder) \{\par
+                            filePath = folder.toURL() + "/" + fileName;\par
+                            that.transferFile(uri, filePath, progress, success, fail);\par
+                        \}, function(error) \{\par
+                            console.log("Failed to get folder: " + error.code);\par
+                            typeof that.fail === 'function' && that.fail(error);\par
+                        \});\par
+                    \},\par
+                    function(error) \{\par
+                        console.log("Failed to get filesystem: " + error.code);\par
+                        typeof that.fail === 'function' && that.fail(error);\par
+                    \}\par
+            );\par
+        \},\par
+\par
+        getFilesystem:function (success, fail) \{\par
+            window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;\par
+            window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, success, fail);\par
+        \},\par
+\par
+        getFolder: function (fileSystem, folderName, success, fail) \{\par
+            fileSystem.root.getDirectory(folderName, \{create: true, exclusive: false\}, success, fail)\par
+        \},\par
+\par
+        transferFile: function (uri, filePath, progress, success, fail) \{\par
+            var that = this;\par
+            that.progress = progress;\par
+            that.success = success;\par
+            that.fail = fail;\par
+\par
+            var transfer = new FileTransfer();\par
+            transfer.onprogress = function(progressEvent) \{\par
+                if (progressEvent.lengthComputable) \{\par
+                    var perc = Math.floor(progressEvent.loaded / progressEvent.total * 100);\par
+                    typeof that.progress === 'function' && that.progress(perc); // progression on scale 0..100 (percentage) as number\par
+                \} else \{\par
+                \}\par
+            \};\par
+\par
+            transfer.download(\par
+                    uri,\par
+                    filePath,\par
+                    function(entry) \{\par
+                        console.log("File saved to: " + entry.toURL());\par
+                        typeof that.success === 'function' && that.success(entry);\par
+                    \},\par
+                    function(error) \{\par
+                        console.log("An error has occurred: Code = " + error.code);\par
+                        console.log("download error source " + error.source);\par
+                        console.log("download error target " + error.target);\par
+                        console.log("download error code " + error.code);\par
+                        typeof that.fail === 'function' && that.fail(error);\par
+                    \}\par
+            );\par
+        \},\par
+\par
+        unzip: function(folderName, fileName, success, fail) \{\par
+            var that = this;\par
+            that.success = success;\par
+            that.fail = fail;\par
+\par
+            zip.unzip("cdvfile://localhost/persistent/" + folderName + "/" + fileName,\par
+                      "cdvfile://localhost/persistent/" + folderName,\par
+                    function(code) \{\par
+                        console.log("result: " + code);\par
+                        that.getFilesystem(\par
+                                function(fileSystem) \{\par
+                                    console.log("gotFS");\par
+                                    that.getFolder(fileSystem, folderName + "/ftpack", function (folder) \{\par
+                                        document.getElementById("output").src = folder.nativeURL + "/img.jpg";\par
+                                        folder.getFile("text.html", \{create: false\}, function (fileEntry) \{\par
+                                            fileEntry.file(function(file) \{\par
+                                                var reader = new FileReader();\par
+                                                reader.onloadend = function (evt) \{\par
+                                                    console.log("Read as text");\par
+                                                    console.log(evt.target.result);\par
+                                                    document.getElementById("output2").innerHTML = evt.target.result;\par
+                                                    typeof that.success === ' function && that.success();'\par
+                                                \};\par
+                                                reader.readAsText(file);\par
+                                            \}, function(error) \{\par
+                                                console.log("Failed to get file");\par
+                                                typeof that.fail === 'function' && that.fail(error);\par
+                                            \});\par
+                                        \}, function (error) \{\par
+                                            console.log("failed to get file: " + error.code);\par
+                                            typeof that.fail === 'function' && that.fail(error);\par
+                                        \});\par
+                                    \}, function (error) \{\par
+                                        console.log("failed to get folder: " + error.code);\par
+                                        typeof that.fail === 'function' && that.fail(error);\par
+                                    \});\par
+                                \}, function(error) \{\par
+                                    console.log("failed to get filesystem: " + error.code);\par
+                                    typeof that.fail === 'function' && that.fail(error);\par
+                                \});\par
+                    \}\par
+            );\par
+        \}\par
+    \}\par
+\par
+\par
+\par
+HTML\par
+\par
+\par
+\par
+\par
+   \par
+        \par
+        \par
+        \par
+        \par
+        <title>Hello World</title>\par
+    </head>\par
+   <!-- ********************* HMTL5 Storage begin *********************** -->\par
+<!DOCTYPE html>\par
+<html>\par
+<head>\par
+<title>User-generated DB (PG Storage Example)</title>\par
+\par
+<meta name="viewport" content="width=device-width, initial-scale = 1.0, user-scalable = no">\par
+<script type="text/javascript" charset="utf-8" src="cordova.js"></script>\par
+    <script type="text/javascript" charset="utf-8" src="cordova_plugins.js"></script>\par
+   <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline' 'unsafe-eval' 'self' data: gap: {\field{\*\fldinst{HYPERLINK "https://ssl.gstatic.com"}}{\fldrslt{\ul\cf1 https://ssl.gstatic.com}}}\f0\fs22 ; style-src 'self' 'unsafe-inline'; media-src *">\par
+<script type="text/javascript" charset="utf-8">\par
+\par
+function onDeviceReady() \{ \par
+ persistData(data1, data2, data3);\par
+\}\par
+</script>\par
+<style type="text/css">\par
+.buttonClass, h2, p, .inputClass, #output, td \{\par
+ font-family: "Helvetica"; color: #000; font-size:1em; \par
+\}\par
+h2 \{\par
+ font-size:1.3em; font-weight: bold;\par
+\}\par
+.buttonClass, .inputClass, #output, .buttonDel \{\par
+ border-radius:8px; \par
+ border:#878787 solid 1px; padding:.5em 1em;margin:.5em;\par
+ -webkit-appearance:none;\par
+\} \par
+.buttonClass, .inputClass, #output \{\par
+ width: 46%;\par
+\} \par
+.buttonDel \{\par
+ background-color: #faa;\par
+\}\par
+.buttonClass \{\par
+ text-align: center; height: 3em; background-color:#fff;\par
+\}\par
+.inputClass \{\par
+ text-align: left; height: 2em; background-color:#ffe; width:90%; \par
+\} \par
+#output \{\par
+ text-align: left; height: auto; background-color:#ffe; width:90%; \par
+\}\par
+.segment \{\par
+ display:block; border-radius:8px; background-color:#eee;\par
+ border:#878787 solid 1px; padding:1em; margin:.5em;\par
+ -webkit-appearance:none; \par
+ height: auto; \par
+\}\par
+table \{\par
+ width:100%;\par
+\}\par
+td \{\par
+ font-size:.8em;\par
+ padding: .5em;\par
+ width:25%;\par
+ border:1px gray solid;\par
+ overflow:auto;\par
+ line-height:1em; \par
+ border-radius: 4px;\par
+ background-color: #fff;\par
+\}\par
+.headercell \{\par
+ text-align:center;\par
+ font-weight:bold;\par
+\}\par
+@media screen and (max-width:800px) \{\par
+ .buttonClass \{ width: 100%;\}\par
+\}\par
+</style>\par
+    \par
+ \par
+    \par
+<script src="js/downloader.js" type="text/javascript"></script>\par
+ \par
+    \par
+</head>\par
+<body>\par
+<div class="segment">\par
+ <h2>Storage, user-entry DB</h2>\par
+ <input class="buttonClass" id="btnLoad" type="button" value="Download this tour" >\par
+    \par
+<div id="statusDom"></div>\par
+<div id="ft-prog"></div>\par
+<div id="statusPlace"></div>\par
+    <img id="imgPlace" src="http://revolutioninteractivevideo.com/wp-content/uploads/panos/augmentedrealityheritage/www/files/Durhamcath/Durhamcathedral.jpgF">\par
+    </br>\par
+    <div id="txtPlace">TEXT COMES HERE</div>\par
+<progress max="100" value="0" id="ft-prog"></progress>\par
+    \par
+ \par
+\par
+ <form id="userInput" action ="" method="GET"> \par
+ <input class="inputClass" id="data1" type="text" value="" placeholder="data1"> \par
+ <input class="inputClass" id="data2" type="text" value="" placeholder="data2"> \par
+ <input class="inputClass" id="data3" type="text" value="" placeholder="data3"> \par
+ <br><br>\par
+ <input class="buttonClass" id="btnUnzip" type="button" value="Insert Data" onclick="zipit();">\par
+ </form>\par
+\par
+ <p><em>Press and hold on the text to copy and export. To scroll contents, tap in field and wait for keyboard, then scroll.</em></p>\par
+\par
+<!-- insert query results here, text-only -->\par
+ <textarea id="output" rows="15" placeholder="Results displayed here"></textarea> \par
+\par
+ <input type="button" class="buttonClass" style="background-color: #faa;" onclick='dropDb();' value="Delete Database">\par
+\par
+<!-- insert query results here as table rows --> \par
+ <table><th><tr><td class="headercell">ID</td><td class="headercell">data1</td><td class="headercell">data2</td><td class="headercell">data3</td></tr></th></table>\par
+ <div id="output2"></div>\par
+    \par
+\par
+ <input type="button" class="buttonClass" onclick='window.location="https://iphonedevlog.wordpress.com/2014/03/21/cordova-websql-database-with-user-added-data/"' value="View Code on iPhoneDevLog">\par
+</div>\par
+\par
+<script>\par
+\par
+/* IMPORTANT! for increased security, add form validation (not used on this page). \par
+Perhaps get it from: {\field{\*\fldinst{HYPERLINK "http://rickharrison.github.io/validate.js/"}}{\fldrslt{\ul\cf1 http://rickharrison.github.io/validate.js/}}}\f0\fs22  */\par
+\par
+// set form field input\par
+\par
+function persistData(formdata1, formdata2, formdata3) \{\par
+// get form entries\par
+ \par
+// check form entries on console\par
+ console.log("data1 = " + formdata1); \par
+ console.log("data2 = " + formdata2);\par
+ console.log("data3 = " + formdata3);\par
+// key, value pair into localStorage\par
+ localStorage.setItem('formdata1Set', formdata1); \par
+ localStorage.setItem('formdata2Set', formdata2); \par
+ localStorage.setItem('formdata3Set', formdata3);\par
+// set the current time as the id to make it unique id\par
+ var d = new Date();\par
+ var new_id = d.getTime();\par
+ localStorage.setItem('new_idSet', new_id);\par
+// proceed to next function\par
+ startDB(); \par
+\}\par
+\par
+function startDB() \{\par
+ var db = window.openDatabase("Database", "1.0", "DEMO", 2000000);\par
+ db.transaction(populateDB, errorCB, successCB);\par
+\}\par
+\par
+// Form the query\par
+\par
+function populateDB(tx) \{\par
+ var formdata1Get = localStorage.getItem('formdata1Set'); // get data from localStorage\par
+ var formdata2Get = localStorage.getItem('formdata2Set');\par
+ var formdata3Get = localStorage.getItem('formdata3Set');\par
+ var new_idGet = localStorage.getItem('new_idSet');\par
+// if no data has been entered, show note and stop the process\par
+ if (formdata1Get.length < 1 && formdata2Get.length < 1 && formdata3Get.length < 1) \{ \par
+ document.getElementById("output").innerHTML = "\\nPLEASE ENTER DATA"; return false; \par
+ \}\par
+ tx.executeSql('CREATE TABLE IF NOT EXISTS DEMO (id TEXT NOT NULL, data1 TEXT NULL, data2 TEXT NULL, data3 TEXT NULL)'); \par
+ tx.executeSql('INSERT INTO DEMO (id, data1, data2, data3) VALUES (\\"' + new_idGet + '\\"' + ', \\"' + formdata1Get + '\\", \\"' + formdata2Get + '\\", \\"' + formdata3Get + '\\")');\par
+ queryDB(tx);\par
+\}\par
+\par
+// Execute the query, grabbing all the data\par
+\par
+function queryDB(tx) \{\par
+ tx.executeSql("SELECT * FROM DEMO", [], querySuccess, errorCB);\par
+\}\par
+\par
+function querySuccess(tx, results) \{\par
+ var len = results.rows.length;\par
+ console.log("Returned rows = " + results.rows.length);\par
+// set output, output2 to blank so values are not appended to previous values\par
+ document.getElementById("output").innerHTML = "";\par
+ document.getElementById("output2").innerHTML = "";\par
+// loop through rows as many times as there are row results\par
+ for (var i = 0; i < len; i++) \{ \par
+ var rowid = results.rows.item(i).id;\par
+// Display the query results within <textarea id="output"></textarea>\par
+ document.getElementById("output").innerHTML += "\\nID = " + results.rows.item(i).id +\par
+ "\\ndata1 = " + results.rows.item(i).data1 +\par
+ "\\ndata2 = " + results.rows.item(i).data2 +\par
+ "\\ndata3 = " + results.rows.item(i).data3 + "\\n";\par
+ \par
+// Display the query results as a table within <div id="output2"></div>\par
+ document.getElementById("output2").innerHTML +=  '<ul data-role="listview"  id="listsearch" data-filter="true" data-input="#myFilter"><li> <a href="' +results.rows.item(i).data1+  '" style="text-align:center;"><img class="ui-content" src="' +results.rows.item(i).data2+ '">' +results.rows.item(i).data3+ '<br>' +results.rows.item(i).address+ '</a><a href="#download" data-transition="pop" data-icon="gear">Download tour</a>    </li></ul>';\par
+ \}\par
+// reset form input fields to blank\par
+ var form = document.getElementById("userInput"); \par
+ form.data1.value = "";\par
+ form.data2.value = "";\par
+ form.data3.value = ""; \par
+\}\par
+\par
+// Show DB onload (next two functions)\par
+\par
+function showDB(tx) \{\par
+ var db = window.openDatabase("Database", "1.0", "DEMO", 2000000);\par
+ db.transaction(createDB, errorCB, successCB);\par
+\}\par
+function createDB(tx) \{\par
+ tx.executeSql("SELECT * FROM DEMO", [], querySuccess, errorCB);\par
+\}\par
+\par
+// Delete a row in the DB from button\par
+\par
+function delRecord(rowid) \{\par
+ var db = window.openDatabase("Database", "1.0", "DEMO", 2000000);\par
+ db.transaction(\par
+ function (tx) \{\par
+ tx.executeSql("DELETE FROM demo WHERE id = ?", [rowid]);\par
+ \}\par
+ ); \par
+ document.getElementById("output").innerHTML = "";\par
+ document.getElementById("output2").innerHTML = "";\par
+ location.reload(false); // refresh page to show changes\par
+\}\par
+\par
+// Transaction success callback\par
+\par
+function successCB() \{\par
+ console.log("_______ Success! _______");\par
+\}\par
+\par
+// Transaction error callback\par
+\par
+function errorCB(err) \{\par
+ if (err.code == "0") \{\par
+ console.log("0 - UNKNOWN_ERR: The transaction failed for reasons unrelated to the database itself and not covered by any other error code.");\par
+ \}\par
+ if (err.code == "1") \{\par
+ console.log("1 - DATABASE_ERR: The statement failed for database reasons not covered by any other error code.");\par
+ \}\par
+ if (err.code == "2") \{\par
+ console.log("2 - VERSION_ERR: The operation failed because the actual database version was not what it should be. For example, a statement found that the actual database version no longer matched the expected version of the Database or DatabaseSync object, or the Database.changeVersion() or DatabaseSync.changeVersion() methods were passed a version that doesn't match the actual database version.");\par
+ \}\par
+ if (err.code == "3") \{\par
+ console.log("3 - TOO_LARGE_ERR: The statement failed because the data returned from the database was too large. The SQL 'LIMIT' modifier might be useful to reduce the size of the result set.");\par
+ \}\par
+ if (err.code == "4") \{\par
+ console.log("4 - QUOTA_ERR: The statement failed because there was not enough remaining storage space, or the storage quota was reached and the user declined to give more space to the database.");\par
+ \}\par
+ if (err.code == "5") \{\par
+ console.log("5 - SYNTAX_ERR: The statement failed because of a syntax error, or the number of arguments did not match the number of ? placeholders in the statement, or the statement tried to use a statement that is not allowed, such as BEGIN, COMMIT, or ROLLBACK, or the statement tried to use a verb that could modify the database but the transaction was read-only.");\par
+ \}\par
+ if (err.code == "6") \{\par
+ console.log("6 - CONSTRAINT_ERR: An INSERT, UPDATE, or REPLACE statement failed due to a constraint failure. For example, because a row was being inserted and the value given for the primary key column duplicated the value of an existing row.");\par
+ \}\par
+ if (err.code == "7") \{\par
+ console.log("7 - TIMEOUT_ERR: A lock for the transaction could not be obtained in a reasonable time.");\par
+ \}\par
+\}\par
+\par
+\par
+// "drop (delete) database" sequence, next two functions\par
+\par
+function dropDb() \{\par
+// erase localStorage\par
+ window.localStorage.clear();\par
+// erase form fields\par
+ var form = document.getElementById("userInput"); \par
+ form.data1.value = "";\par
+ form.data2.value = "";\par
+ form.data3.value = "";\par
+ document.getElementById("output").innerHTML = "";\par
+ document.getElementById("output2").innerHTML = "";\par
+// start the "drop database" sequence\par
+ var db = window.openDatabase("Database", "1.0", "DEMO", 2000000);\par
+ db.transaction(dropDatabase, errorCB, successCB);\par
+\}\par
+function dropDatabase(tx) \{\par
+ tx.executeSql('DROP TABLE IF EXISTS DEMO');\par
+ console.log("_______ Table Dropped! _______");\par
+\}\par
+\par
+// Show the DB contents on page load\par
+showDB(); \par
+</script>\par
+</body>\par
+</html>\par
+<!-- ********************* HMTL5 Storage end *********************** -->\par
+}
+ 
